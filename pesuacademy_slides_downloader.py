@@ -1,7 +1,6 @@
 from playwright.sync_api import sync_playwright
 import os
 import re
-from help import select_unit
 
 def sanitize(name: str):
     return re.sub(r"[^\w\- ]", "", name).strip()
@@ -14,7 +13,6 @@ def login(page, username, password):
     page.click("button.btn.btn-lg.btn-primary.btn-block")
     page.wait_for_load_state("networkidle")
     print("Logged in successfully.")
-
 
 # 2. SELECT COURSE
 def select_course(page):
@@ -42,7 +40,6 @@ def select_course(page):
     print(f"Opening: {course_name}")
 
     return course_name
-
 
 # 3. SELECT UNIT FUNCTION
 def select_unit(page):
@@ -78,15 +75,15 @@ def open_first_slide(page):
     
 # 5. DOWNLOAD SLIDE
 def download_slides(page, course_name, unit_name):
-    page.wait_for_selector("a:has(span.glyphicon-eye-open)")
-
-    slide_links = page.locator("a:has(span.glyphicon-eye-open)")
+    page.wait_for_selector(".link-preview a")
+    slide_links = page.locator(".link-preview a")
     slide_count = slide_links.count()
 
-    print(f"\nFound {slide_count} slides.")
+    print(f"\nFound {slide_count} files.")
 
     folder = f"{course_name} {unit_name}"
     os.makedirs(folder, exist_ok=True)
+
     existing = [
         int(f.split(".")[0]) for f in os.listdir(folder)
         if f.split(".")[0].isdigit()
@@ -96,33 +93,33 @@ def download_slides(page, course_name, unit_name):
     for i in range(slide_count):
         link = slide_links.nth(i)
         onclick = link.get_attribute("onclick")
+        matches = re.findall(r"loadIframe\('([^']+)", onclick)
 
-        match = re.search(r"loadIframe\('([^']+)", onclick)
-        if not match:
+        if not matches:
             print("Could not extract URL.")
             continue
 
-        pdf_url = "https://www.pesuacademy.com" + match.group(1)
-        pdf_url = pdf_url.split("#")[0]
+        for url in matches:
+            pdf_url = "https://www.pesuacademy.com" + url
+            pdf_url = pdf_url.split("#")[0]
 
-        print(f"\nDownloading: {pdf_url}")
-        response = page.request.get(pdf_url)
+            print(f"\nDownloading: {pdf_url}")
+            response = page.request.get(pdf_url)
 
-        if response.status != 200:
-            print(f"Failed ({response.status})")
-            continue
+            if response.status != 200:
+                print(f"Failed ({response.status})")
+                continue
 
-        filename = f"{next_number}.pdf"
-        filepath = os.path.join(folder, filename)
+            filename = f"{next_number}.pdf"
+            filepath = os.path.join(folder, filename)
 
-        with open(filepath, "wb") as f:
-            f.write(response.body())
+            with open(filepath, "wb") as f:
+                f.write(response.body())
 
-        print(f"Saved → {filepath}")
-        next_number += 1
+            print(f"Saved → {filepath}")
+            next_number += 1
 
-    print("\nFirst slide downloaded!")
-
+    print("\nAll files downloaded successfully.")
 
 def main():
     username = input("Enter Username: ")
@@ -138,9 +135,8 @@ def main():
         unit_name = select_unit(page)
         open_first_slide(page)
         download_slides(page, course_name, unit_name)
-        
-        page.wait_for_timeout(5000)
 
+        page.wait_for_timeout(5000)
 
 if __name__ == "__main__":
     main()
