@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import os
 import re
+from help import select_unit
 
 def sanitize(name: str):
     return re.sub(r"[^\w\- ]", "", name).strip()
@@ -42,6 +43,33 @@ def select_course(page):
 
     return course_name
 
+
+# 3. SELECT UNIT FUNCTION
+def select_unit(page):
+    page.wait_for_selector("#courselistunit li")
+
+    units = page.locator("#courselistunit li a")
+    unit_count = units.count()
+
+    names = []
+    for i in range(unit_count):
+        names.append(units.nth(i).inner_text().strip())
+
+    print("\nAvailable Units:")
+    for index, name in enumerate(names, 1):
+        print(f"{index}. {name}")
+
+    choice = int(input("\nEnter unit number to open: "))
+    selected_unit = units.nth(choice - 1)
+
+    unit_name = sanitize(names[choice - 1])
+    selected_unit.click()
+
+    print(f"Opening {unit_name}...")
+
+    return unit_name
+
+
 def main():
     username = input("Enter Username: ")
     password = input("Enter Password: ")
@@ -53,6 +81,7 @@ def main():
 
         login(page, username, password)
         course_name = select_course(page)
+        unit_name = select_unit(page)
 
         page.wait_for_timeout(5000)
 
