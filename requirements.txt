@@ -1,2 +1,4 @@
 playwright
 dotenv
+PyPDF2
+

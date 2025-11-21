@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 from dotenv import load_dotenv, set_key, dotenv_values
+from merge import merge
 import os
 import re
 import getpass
@@ -176,6 +177,37 @@ def navigate_through_pages(page, course_name, unit_name, downloaded_urls):
     page.wait_for_timeout(500)
 
 
+# 7. MERGE PDFs
+def ask_and_merge_pdfs(folder, course_name=None, unit_name=None):
+    values = dotenv_values(ENV_FILE) if os.path.exists(ENV_FILE) else {}
+    pref = values.get("MERGE_PDFS", None)
+
+    if pref == "-1":
+        return
+    if pref == "1":
+        merge(folder)
+        return
+
+    print("\nMerge all PDFs into a single file?")
+    print("1. Always")
+    print("2. Yes")
+    print("3. No")
+    print("4. Don't ask again (always no)")
+    choice = input("Select option: ").strip()
+
+    if choice == "1":
+        merge(folder)
+        set_key(ENV_FILE, "MERGE_PDFS", "1")
+    if choice == "2":
+        merge(folder)
+        set_key(ENV_FILE, "MERGE_PDFS", "0")
+    elif choice == "3":
+        set_key(ENV_FILE, "MERGE_PDFS", "0")
+    elif choice == "4":
+        set_key(ENV_FILE, "MERGE_PDFS", "-1")
+        print("Preference saved. Will not merge.")
+        
+
 def main():
     if os.path.exists(ENV_FILE):
         load_dotenv(ENV_FILE)
@@ -220,6 +252,8 @@ def main():
             open_first_slide(page)
             download_slides(page, course_name, unit_name, downloaded_urls)
             navigate_through_pages(page, course_name, unit_name, downloaded_urls)
+            folder = f"{course_name} {unit_name}"
+            ask_and_merge_pdfs(folder, course_name, unit_name)
 
     except TimeoutError:
         print("\nUnstable internet connection. Try again later.")
