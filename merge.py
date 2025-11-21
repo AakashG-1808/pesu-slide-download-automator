@@ -1,6 +1,9 @@
 import os
 import argparse
 from PyPDF2 import PdfMerger
+from dotenv import set_key, dotenv_values
+
+ENV_FILE = ".env"
 
 
 def get_unique_output_path(folder, base_name):
@@ -46,6 +49,37 @@ def merge(folder, output_name=None):
     merger.close()
 
     print(f"Merged PDF created → {output_path}")
+
+
+# 7. MERGE PDFs
+def ask_and_merge_pdfs(folder):
+    values = dotenv_values(ENV_FILE) if os.path.exists(ENV_FILE) else {}
+    pref = values.get("MERGE_PDFS", None)
+
+    if pref == "-1":
+        return
+    if pref == "1":
+        merge(folder)
+        return
+
+    print("\nMerge all PDFs into a single file?")
+    print("1. Always")
+    print("2. Yes")
+    print("3. No")
+    print("4. Don't ask again (always no)")
+    choice = input("Select option: ").strip()
+
+    if choice == "1":
+        merge(folder)
+        set_key(ENV_FILE, "MERGE_PDFS", "1")
+    elif choice == "2":
+        merge(folder)
+        set_key(ENV_FILE, "MERGE_PDFS", "0")
+    elif choice == "3":
+        set_key(ENV_FILE, "MERGE_PDFS", "0")
+    elif choice == "4":
+        set_key(ENV_FILE, "MERGE_PDFS", "-1")
+        print("Preference saved. Will not merge.")
 
 
 if __name__ == "__main__":

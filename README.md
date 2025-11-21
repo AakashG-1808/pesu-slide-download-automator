@@ -13,7 +13,7 @@ This Python script automates the process of logging into PESU Academy, selecting
    `playwright install`
 
 3. Run the script:  
-   `python app.py`
+   `python main.py`
 
 4. Enter your username and password when prompted.
 
@@ -30,3 +30,22 @@ If merged.pdf already exists, the script will automatically create merged[1].pdf
 
 `--folder` is not optional
 `--output` is optional.
+
+---
+
+## View Playwright Automation
+
+1. Change this line in main.py [44]
+```browser = p.chromium.launch(headless=True)```
+
+to 
+
+```browser = p.chromium.launch(headless=Flase)```
+
+2. comment this line out in main.py [47]
+```
+page.route(
+                "**/*",
+                lambda route: route.abort() if route.request.resource_type in ["image", "media", "font"] else route.continue_()
+            )
+```
