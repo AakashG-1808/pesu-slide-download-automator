@@ -4,8 +4,10 @@ import re
 ENV_FILE = ".env"
 downloaded_urls = set()
 
+
 def sanitize(name: str):
     return re.sub(r"[^\w\- ]", "", name).strip()
+
 
 # 1. LOGIN
 def login(page, username, password):
@@ -17,9 +19,13 @@ def login(page, username, password):
     page.wait_for_timeout(800)
     print("Logged in successfully.")
 
+
 # 2. SELECT COURSE
 def select_course(page):
-    page.wait_for_selector("span.menu-name:has-text('My Courses')", timeout=15000)
+    page.wait_for_selector(
+        "span.menu-name:has-text('My Courses')",
+        timeout=15000
+        )
     page.click("span.menu-name:has-text('My Courses')")
     page.wait_for_selector("table.table.table-hover", timeout=15000)
     no_content = page.locator(
@@ -78,6 +84,7 @@ def select_unit(page):
 
     return unit_name
 
+
 # 4. CLICK FIRST SLIDE
 def open_first_slide(page):
     page.wait_for_selector("span.pesu-icon-presentation-graphs", timeout=15000)
@@ -85,6 +92,7 @@ def open_first_slide(page):
     page.wait_for_load_state("networkidle")
     page.wait_for_timeout(800)
     print("Clicked first slide entry.")
+
 
 # 5. DOWNLOAD SLIDES
 def download_slides(page, course_name, unit_name, downloaded_urls):
@@ -138,11 +146,17 @@ def download_slides(page, course_name, unit_name, downloaded_urls):
             next_number += 1
             page.wait_for_timeout(300)
 
+
 # 6. PAGE NAVIGATION
 def navigate_through_pages(page, course_name, unit_name, downloaded_urls):
     while True:
-        page.wait_for_selector(".coursecontent-navigation-area a.pull-right", timeout=15000)
-        next_button = page.locator(".coursecontent-navigation-area a.pull-right")
+        page.wait_for_selector(
+            ".coursecontent-navigation-area a.pull-right",
+            timeout=15000
+            )
+        next_button = page.locator(
+            ".coursecontent-navigation-area a.pull-right"
+            )
         label = next_button.inner_text().strip()
         print("\nCurrent button:", label)
 

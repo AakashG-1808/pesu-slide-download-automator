@@ -31,7 +31,11 @@ def merge(folder, output_name=None):
 
     pdfs = sorted(
         pdfs,
-        key=lambda x: int(os.path.splitext(x)[0]) if x.split(".")[0].isdigit() else float("inf")
+        key=lambda x: (
+            int(os.path.splitext(x)[0])
+            if x.split(".")[0].isdigit()
+            else float("inf")
+        ),
     )
 
     if not output_name:
@@ -84,7 +88,11 @@ def ask_and_merge_pdfs(folder):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge PDFs in a folder")
-    parser.add_argument("--folder", required=True, help="Folder containing PDF files")
+    parser.add_argument(
+        "--folder",
+        required=True,
+        help="Folder containing PDF files"
+        )
     parser.add_argument("--output", help="Output PDF name (optional)")
     args = parser.parse_args()
 
